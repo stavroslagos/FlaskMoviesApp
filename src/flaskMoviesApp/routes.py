@@ -1,6 +1,6 @@
 from flask import render_template, redirect, url_for, request, flash, abort
-from flaskMoviesApp.forms import SignupForm, LoginForm, NewMovieForm, AccountUpdateForm
-from flaskMoviesApp.models import User, Movie
+from FlaskMoviesApp.forms import SignupForm, LoginForm, NewMovieForm, AccountUpdateForm
+from FlaskMoviesApp.models import User, Movie
 from flask_login import login_user, current_user, logout_user, login_required
 
 import secrets
@@ -20,8 +20,10 @@ def image_save(image, where, size):
     file_name, file_extension = os.path.splitext(image.filename)
     image_filename = random_filename + file_extension
     image_path = os.path.join(app.root_path, 'static/images/'+ where, image_filename)
-
-    image_size = size # this must be a tupe in the form of: (150, 150)
+    
+    # this must be a tupe in the form of: (150, 150)
+    image_size = size 
+    
     img = Image.open(image)
     img.thumbnail(image_size)
 
@@ -63,7 +65,7 @@ def root():
     ## Pagination: page value from 'page' parameter from url
     page = request.args.get('page', 1, type=int)
 
-    movies = ## Query για ανάσυρση των ταινιών από τη βάση δεδομένων με το σωστό pagination και ταξινόμηση
+    # movies = ## Query για ανάσυρση των ταινιών από τη βάση δεδομένων με το σωστό pagination και ταξινόμηση
 
     ## Για σωστή ταξινόμηση ίσως πρέπει να περάσετε κάτι επιπλέον μέσα στο context.
     ## Υπενθύμιση: το context είναι το σύνολο των παραμέτρων που περνάμε

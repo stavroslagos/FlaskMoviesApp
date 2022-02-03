@@ -35,7 +35,7 @@ login_manager.login_message_category = "warning"
 login_manager.login_message = "Παρακαλούμε κάντε login για να μπορέσετε να δείτε αυτή τη σελίδα."
 
 
-from flaskMoviesApp import routes
+from FlaskMoviesApp import routes
 
 
 
