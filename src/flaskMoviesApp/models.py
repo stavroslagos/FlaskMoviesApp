@@ -31,7 +31,7 @@ class Movie(db.Model):
     plot = db.Column(db.Text(), nullable=False)
     ## δήλωση ονόματος εικόνας ταινίας (40 χαρακτήρες) με προεπιλεγμένο 
     # τίτλο:'default_movie_image.png', ΜΗ υποχρεωτικό πεδίο
-    image = db.Column(db.String(40), nullable=False, default='default_movie_image.png')
+    image = db.Column(db.String(40), default='default_movie_image.png')
     ## Integer, δήλωση πεδίου βαθμολογίας ταινίας, με προεπιλεγμένη 
     # τιμή το μηδέν: default=1, υποχρεωτικό πεδίο
     rating = db.Column(db.Integer, nullable=False, default=1)
@@ -43,7 +43,7 @@ class Movie(db.Model):
     date_created = db.Column(db.DateTime, nullable=False,default=datetime.utcnow)
     ## δήλωση ID του χρήστη που αποθήκευσε την ταινία, ForeignKey στο πεδίο 
     # id του πίνακα user, υποχρεωτικό πεδίο
-    user_id = db.relationship('User', backref='author', lazy=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):
         return f"{self.date_created}:{self.title}:{self.rating}"
