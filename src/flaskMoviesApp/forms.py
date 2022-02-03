@@ -1,7 +1,9 @@
-from flask_wtf.file import FileAllowed
+from flask_wtf.file import FileAllowed, FileField
 from wtforms import StringField, SubmitField, BooleanField, TextAreaField, IntegerField
 from wtforms.validators import DataRequired, Email, Length, EqualTo, NumberRange
-from flaskMoviesApp.models import User
+from FlaskMoviesApp.models import User
+
+from flask_wtf import FlaskForm
 
 from datetime import datetime as dt
 
@@ -50,7 +52,7 @@ class SignupForm(FlaskForm):
     submit = SubmitField('Εγγραφή')
 
 
-    def validate_username(self, username):
+    #def validate_username(self, username):
         ## Validator για έλεγχο ύπαρξης του user στη βάση
 
 
@@ -65,16 +67,16 @@ class AccountUpdateForm(FlaskForm):
                            validators=[DataRequired(message="Αυτό το πεδίο δε μπορεί να είναι κενό."), 
                                        Email(message="Παρακαλώ εισάγετε ένα σωστό email")])
 
-    image = ## Αρχείο Εικόνας, με επιτρεπόμενους τύπους εικόνων τα 'jpg', 'jpeg', 'png', και μέγιστο μέγεθος αρχείου εικόνας τα 2 MBytes, ΜΗ υποχρεωτικό πεδίο
+    #image = ## Αρχείο Εικόνας, με επιτρεπόμενους τύπους εικόνων τα 'jpg', 'jpeg', 'png', και μέγιστο μέγεθος αρχείου εικόνας τα 2 MBytes, ΜΗ υποχρεωτικό πεδίο
 
    
     submit = SubmitField('Αποστολή')
 
 
-    def validate_username(self, username):
+    #def validate_username(self, username):
         ## Validator για έλεγχο ύπαρξης του user στη βάση
 
-    def validate_email(self, email):
+    #def validate_email(self, email):
         ## Validator για έλεγχο ύπαρξης του email στη βάση
 
 
@@ -97,17 +99,17 @@ class LoginForm(FlaskForm):
 
 
 class NewMovieForm(FlaskForm):
-    title = ## Τίτλος Ταινίας, υποχρεωτικό πεδίο κειμένου από 3 έως 50 χαρακτήρες και το αντίστοιχο label και μήνυμα στον validator
+    #title = ## Τίτλος Ταινίας, υποχρεωτικό πεδίο κειμένου από 3 έως 50 χαρακτήρες και το αντίστοιχο label και μήνυμα στον validator
 
 
-    plot = ## Υπόθεση Ταινίας, υποχρεωτικό πεδίο κειμένου, από 5 έως απεριόριστο αριθμό χαρακτήρων και το αντίστοιχο label και μήνυμα στον validator
+    #plot = ## Υπόθεση Ταινίας, υποχρεωτικό πεδίο κειμένου, από 5 έως απεριόριστο αριθμό χαρακτήρων και το αντίστοιχο label και μήνυμα στον validator
 
     
-    image = ## Αρχείο Εικόνας, με επιτρεπόμενους τύπους εικόνων τα 'jpg', 'jpeg', 'png', και μέγιστο μέγεθος αρχείου εικόνας τα 2 MBytes, ΜΗ υποχρεωτικό πεδίο
+    #image = ## Αρχείο Εικόνας, με επιτρεπόμενους τύπους εικόνων τα 'jpg', 'jpeg', 'png', και μέγιστο μέγεθος αρχείου εικόνας τα 2 MBytes, ΜΗ υποχρεωτικό πεδίο
 
-    release_year = ## IntegerField με το έτος πρώτης προβολής της ταινίας, θα παίρνει τιμές από το 1888 έως το current_year που υπολογίζεται στην αρχή του κώδικα εδώ στο forms.py
+    #release_year = ## IntegerField με το έτος πρώτης προβολής της ταινίας, θα παίρνει τιμές από το 1888 έως το current_year που υπολογίζεται στην αρχή του κώδικα εδώ στο forms.py
 
-    rating = ## Βαθμολογία Ταινίας (IntegerField), υποχρεωτικό πεδίο, Αριθμητική τιμή από 1 έως 100, με τη χρήση του validator NumberRange, και με το αντίστοιχο label και μήνυμα στον validator
+    #rating = ## Βαθμολογία Ταινίας (IntegerField), υποχρεωτικό πεδίο, Αριθμητική τιμή από 1 έως 100, με τη χρήση του validator NumberRange, και με το αντίστοιχο label και μήνυμα στον validator
 
 
     submit = SubmitField(label='Αποστολή')

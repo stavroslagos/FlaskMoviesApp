@@ -1,6 +1,15 @@
-from flask import render_template, redirect, url_for, request, flash, abort
+from msilib.schema import MoveFile
+from flask import (render_template,
+                     redirect,
+                     url_for,
+                     request,
+                     flash,
+                     abort)
 from FlaskMoviesApp.forms import SignupForm, LoginForm, NewMovieForm, AccountUpdateForm
 from FlaskMoviesApp.models import User, Movie
+''' Added by Stavros Lagos 3.2.2022'''
+from FlaskMoviesApp import app, db, bcrypt
+''' End '''
 from flask_login import login_user, current_user, logout_user, login_required
 
 import secrets
@@ -43,6 +52,22 @@ def image_save(image, where, size):
 ## Εδώ πρέπει να μπεί ο κώδικας για τους error handlers (πχ για το error 404 κλπ).
 ## Θα πρέπει να φτιαχτούν οι error handlers για τα errors 404, 415 και 500.
 
+@app.errorhandler(404)
+def page_not_found(e):
+    # note that we set the 404 status explicitly
+    return render_template('404.html'), 404
+
+
+@app.errorhandler(415)
+def unsupported_media_type(e):
+    # note that we set the 415 status explicitly
+    return render_template('415.html'), 415
+
+@app.errorhandler(500)
+def unsupported_media_type(e):
+    # note that we set the 500 status explicitly
+    return render_template('500.html'), 500
+
 ### ERROR HANDLERS END ###
 
 
@@ -65,7 +90,10 @@ def root():
     ## Pagination: page value from 'page' parameter from url
     page = request.args.get('page', 1, type=int)
 
-    # movies = ## Query για ανάσυρση των ταινιών από τη βάση δεδομένων με το σωστό pagination και ταξινόμηση
+    ## Query για ανάσυρση των ταινιών από τη βάση δεδομένων με το σωστό 
+    # pagination και ταξινόμηση
+    # Edited by Stavros Lagos 3.2.2022
+    movies = Movie.query.order_by(Movie.date_created.desc()).paginate(per_page=5, page=page)
 
     ## Για σωστή ταξινόμηση ίσως πρέπει να περάσετε κάτι επιπλέον μέσα στο context.
     ## Υπενθύμιση: το context είναι το σύνολο των παραμέτρων που περνάμε
@@ -113,7 +141,7 @@ def signup():
 @app.route("/account/", methods=['GET','POST'])
 def account():
 
-    form = ## Αρχικοποίηση φόρμας με προσυμπληρωμένα τα στοιχεία του χρήστη
+    #form = ## Αρχικοποίηση φόρμας με προσυμπληρωμένα τα στοιχεία του χρήστη
 
     if request.method == 'POST' and form.validate_on_submit():
 
@@ -143,7 +171,7 @@ def login_page():
     ## Έλεγχος για το αν ο χρήστης έχει κάνει login ώστε αν έχει κάνει,
     ## να μεταφέρεται στην αρχική σελίδα
 
-    form = ## Αρχικοποίηση φόρμας Login
+    #form = ## Αρχικοποίηση φόρμας Login
 
     if request.method == 'POST' and form.validate_on_submit():
 
@@ -170,10 +198,16 @@ def login_page():
 def logout_page():
 
     ## Αποσύνδεση Χρήστη
+    # Added by Stavros Lagos 3.2.2022
+    logout_user()
+    # End
 
     flash('Έγινε αποσύνδεση του χρήστη.', 'success')
     
     ## Ανακατεύθυνση στην αρχική σελίδα
+    # Added by Stavros Lagos 3.2.2022
+    return redirect(url_for("root"))
+    # End
 
 
 
@@ -198,10 +232,10 @@ def new_movie():
         ## αν όχι, να αποθηκεύει τα υπόλοιπα δεδομένα και αντί εικόνας να μπαίνει το default movie image 
 
 
-        flash(f'Η ταινία με τίτλο: "{title}" δημιουργήθηκε με επιτυχία', 'success')
+    '''    flash(f'Η ταινία με τίτλο: "{title}" δημιουργήθηκε με επιτυχία', 'success')
 
         return redirect(url_for('root'))
-
+    '''
 
     return render_template("new_movie.html", form=form, page_title="Εισαγωγή Νέας Ταινίας", current_year=current_year)
 
@@ -244,7 +278,7 @@ def movies_by_author(author_id):
     page = request.args.get('page', 1, type=int)
 
 
-    user = # Query για ανάσυρση του χρήστη από τη βάση δεδομένων βάσει του id του ('author_id'), ή εμφάνιση σελίδας 404 page not found
+    '''user = # Query για ανάσυρση του χρήστη από τη βάση δεδομένων βάσει του id του ('author_id'), ή εμφάνιση σελίδας 404 page not found
 
 
 
@@ -254,7 +288,7 @@ def movies_by_author(author_id):
         ## Υπενθύμιση: το context είναι το σύνολο των παραμέτρων που περνάμε
         ##             μέσω της render_template μέσα στα templates μας
         ##             στην παρακάτω περίπτωση το context περιέχει τα movies=movies, author=user
-
+        '''
 
     return render_template("movies_by_author.html", movies=movies, author=user)
 
@@ -272,7 +306,7 @@ def movies_by_author(author_id):
 ## και να προστεθεί και ο decorator για υποχρεωτικό login
 def edit_movie(movie_id):
 
-    movie = ## Ανάκτηση ταινίας βάσει των movie_id, user_id, ή, εμφάνιση σελίδας 404 page not found
+    '''movie = ## Ανάκτηση ταινίας βάσει των movie_id, user_id, ή, εμφάνιση σελίδας 404 page not found
 
     ## Έλεγχος αν βρέθηκε η ταινία
     ## αν ναι, αρχικοποίηση της φόρμας ώστε τα πεδία να είναι προσυμπληρωμένα
@@ -286,7 +320,7 @@ def edit_movie(movie_id):
         return render_template("new_movie.html", form=form, movie=movie, page_title="Αλλαγή Ταινίας")
     
 
-    flash(f'Δε βρέθηκε η ταινία', 'info')
+    flash(f'Δε βρέθηκε η ταινία', 'info')'''
 
     return redirect(url_for("root"))
 
@@ -301,9 +335,9 @@ def edit_movie(movie_id):
 ## Να δοθεί ο σωστός decorator για τη σελίδα με route 'delete_movie'
 ## και επιπλέον να δέχεται το id της ταινίας προς αλλαγή ('movie_id')
 ## και να προστεθεί και ο decorator για υποχρεωτικό login
-def delete_movie(movie_id):
+#def delete_movie(movie_id):
 
-    movie = ## Ανάκτηση ταινίας βάσει των movie_id και author (ο οποίος πρέπει να συμπίπτει με τον current user), ή, εμφάνιση σελίδας 404 page not found
+    #movie = ## Ανάκτηση ταινίας βάσει των movie_id και author (ο οποίος πρέπει να συμπίπτει με τον current user), ή, εμφάνιση σελίδας 404 page not found
 
     ## Εάν βρεθεί η ταινία, κάνουμε διαγραφή και εμφανίζουμε flash message επιτυχούς διαγραφής
     ## με ανακατεύθυνση στην αρχική σελίδα
