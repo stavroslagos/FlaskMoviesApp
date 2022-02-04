@@ -119,8 +119,19 @@ def signup():
     if request.method == 'POST' and form.validate_on_submit():
 
 
-        ## Να συμπληρωθεί ο κώδικας που φορτώνει τα στοιχεία της φόρμας και τα αποθηκεύει στη βάση δεδομένων
+        ## Να συμπληρωθεί ο κώδικας που φορτώνει τα στοιχεία της φόρμας 
+        # και τα αποθηκεύει στη βάση δεδομένων
+        # Added by Stavros Lagos 4.2.2022
+        username = form.username.data
+        email = form.email.data
+        password = form.password.data
+        password2 = form.password2.data
 
+        encrypted_password = bcrypt.generate_password_hash(password).decode('UTF-8')
+
+        user = User(username=username, email=email, password=encrypted_password)
+        db.session.add(user)
+        db.session.commit()
 
         flash(f'Ο λογαριασμός για το χρήστη: <b>{username}</b> δημιουργήθηκε με επιτυχία', 'success')
 

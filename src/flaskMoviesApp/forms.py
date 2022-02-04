@@ -1,3 +1,4 @@
+from email import message
 from flask_wtf.file import FileAllowed, FileField
 from wtforms import StringField, SubmitField, BooleanField, TextAreaField, IntegerField
 from wtforms.validators import DataRequired, Email, Length, EqualTo, NumberRange
@@ -18,7 +19,8 @@ def maxImageSize(max_size=2):
     max_bytes = max_size * 1024 * 1024
     def _check_file_size(form, field):
         if len(field.data.read()) > max_bytes:
-            raise ValidationError(f'Το μέγεθος της εικόνας δε μπορεί να υπεβαίνει τα {max_size} MB')
+            raise ValidationError(f'Το μέγεθος της εικόνας δε μπορεί 
+            να υπεβαίνει τα {max_size} MB')
 
     return _check_file_size
 
@@ -52,8 +54,12 @@ class SignupForm(FlaskForm):
     submit = SubmitField('Εγγραφή')
 
 
-    #def validate_username(self, username):
+    def validate_username(self, username):
         ## Validator για έλεγχο ύπαρξης του user στη βάση
+        # Added by Stavros Lagos 4.2.2022
+        user = User.query.filter_by(username=username.data).first()
+        if user:
+            raise ValidationError('To username {username.data} υπάρχει ήδη!')
 
 
 
@@ -67,17 +73,30 @@ class AccountUpdateForm(FlaskForm):
                            validators=[DataRequired(message="Αυτό το πεδίο δε μπορεί να είναι κενό."), 
                                        Email(message="Παρακαλώ εισάγετε ένα σωστό email")])
 
-    #image = ## Αρχείο Εικόνας, με επιτρεπόμενους τύπους εικόνων τα 'jpg', 'jpeg', 'png', και μέγιστο μέγεθος αρχείου εικόνας τα 2 MBytes, ΜΗ υποχρεωτικό πεδίο
+    ## Αρχείο Εικόνας, με επιτρεπόμενους τύπους εικόνων τα 'jpg', 'jpeg', 'png', 
+    # και μέγιστο μέγεθος αρχείου εικόνας τα 2 MBytes, ΜΗ υποχρεωτικό πεδίο
+    # Added by Stavros Lagos 4.2.2022
+    image = FileField('Εικόνα χρήστη', validators=[Optional(strip_whitespace=True),
+                                                    FileAllowed(['jpg','jpeg','png'],'Επιτρέπονται μόνο αρχεία εικόνας τύπου jpg,jpeg,png'),
+                                                    maxImageSize(max_size=2)])
 
    
     submit = SubmitField('Αποστολή')
 
 
-    #def validate_username(self, username):
+    def validate_username(self, username):
         ## Validator για έλεγχο ύπαρξης του user στη βάση
+        # Added by Stavros Lagos 4.2.2022
+        user = User.query.filter_by(username=username.data).first()
+        if user:
+            raise ValidationError('To username {username.data} υπάρχει ήδη!')
 
-    #def validate_email(self, email):
+    def validate_email(self, email):
         ## Validator για έλεγχο ύπαρξης του email στη βάση
+        # Added by Stavros Lagos 4.2.2022
+        email = User.query.filter_by(email=email.data).first()
+        if email:
+            raise ValidationError('To email {email.data} υπάρχει ήδη!')
 
 
 
@@ -99,17 +118,44 @@ class LoginForm(FlaskForm):
 
 
 class NewMovieForm(FlaskForm):
-    #title = ## Τίτλος Ταινίας, υποχρεωτικό πεδίο κειμένου από 3 έως 50 χαρακτήρες και το αντίστοιχο label και μήνυμα στον validator
+    title = StringField(label="Τίτλος ταινίας",
+                           validators=[DataRequired(message="Αυτό το πεδίο δε μπορεί να είναι κενό."),
+                                       Length(min=3, max=50, message="Αυτό το πεδίο πρέπει να είναι από 3 έως 15 χαρακτήρες")])
+
+    ## Τίτλος Ταινίας, υποχρεωτικό πεδίο κειμένου από 3 έως 50 χαρακτήρες και το αντίστοιχο label 
+    # και μήνυμα στον validator
+    # Added by Stavros Lagos 4.2.2022
 
 
-    #plot = ## Υπόθεση Ταινίας, υποχρεωτικό πεδίο κειμένου, από 5 έως απεριόριστο αριθμό χαρακτήρων και το αντίστοιχο label και μήνυμα στον validator
+    plot = TextAreaField(label="Υπόθεση"),
+                        validators=[DataRequired(message="Αυτό το πεδίο δε μπορεί να είναι κενό."),
+                                       Length(min=5, message="Αυτό το πεδίο πρέπει να είναι μεγαλύτερο από 5 χαρακτήρες")]
+    ## Υπόθεση Ταινίας, υποχρεωτικό πεδίο κειμένου, από 5 έως απεριόριστο αριθμό χαρακτήρων 
+    # και το αντίστοιχο label και μήνυμα στον validator
+    # Added by Stavros Lagos 4.2.2022
 
     
-    #image = ## Αρχείο Εικόνας, με επιτρεπόμενους τύπους εικόνων τα 'jpg', 'jpeg', 'png', και μέγιστο μέγεθος αρχείου εικόνας τα 2 MBytes, ΜΗ υποχρεωτικό πεδίο
+    image = FileField('Εικόνα Άρθρου', validators=[Optional(strip_whitespace=True),
+                                                    FileAllowed([ 'jpg', 'jpeg', 'png' ],
+                                                            'Επιτρέπονται μόνο αρχεία εικόνων τύπου jpg, jpeg και png!'),
+                                                           maxImageSize(max_size=2)])
+    ## Αρχείο Εικόνας, με επιτρεπόμενους τύπους εικόνων τα 'jpg', 'jpeg', 'png', 
+    # και μέγιστο μέγεθος αρχείου εικόνας τα 2 MBytes, ΜΗ υποχρεωτικό πεδίο
+    # Added by Stavros Lagos 4.2.2022
 
-    #release_year = ## IntegerField με το έτος πρώτης προβολής της ταινίας, θα παίρνει τιμές από το 1888 έως το current_year που υπολογίζεται στην αρχή του κώδικα εδώ στο forms.py
+    release_year = IntegerField('Έτος πρώτης προβολής', validators=[DataRequired(message="Αυτό το πεδίο δε μπορεί να είναι κενό."),
+                                                                    NumberRange(min=1888,max=current_year,
+                                                                    message="Το έτος πρώτης προβολής πρέπει να είναι μεταξύ 1888 και {current_year}!")])
+    ## IntegerField με το έτος πρώτης προβολής της ταινίας, θα παίρνει τιμές από το 1888 
+    # έως το current_year που υπολογίζεται στην αρχή του κώδικα εδώ στο forms.py
+    # Added by Stavros Lagos 4.2.2022
 
-    #rating = ## Βαθμολογία Ταινίας (IntegerField), υποχρεωτικό πεδίο, Αριθμητική τιμή από 1 έως 100, με τη χρήση του validator NumberRange, και με το αντίστοιχο label και μήνυμα στον validator
+    rating = IntegerField('Βαθμολογία Ταινίας', validators=[DataRequired(message="Αυτό το πεδίο δε μπορεί να είναι κενό."),
+                                                                        NumberRange(min=1,max=100,
+                                                                    message="Η βαθμολογία πρέπει να είναι μεταξύ 1 και 100!")])
+    ## Βαθμολογία Ταινίας (IntegerField), υποχρεωτικό πεδίο, Αριθμητική τιμή από 1 έως 100, 
+    # με τη χρήση του validator NumberRange, και με το αντίστοιχο label και μήνυμα στον validator
+    # Added by Stavros Lagos 4.2.2022
 
 
     submit = SubmitField(label='Αποστολή')
