@@ -14,7 +14,7 @@ ERROR 404! Η σελίδα που ζητήσατε δε βρέθηκε!
 
 <div class="error_image_container">
   <!-- Προσθέστε παρακάτω το μονοπάτι για μία κανονική εικόνα μέσα στα static files στο src του παρακάτω img tag -->
-  <img class="error_image" width="1280" src="images/errors/404.png">
+  <img class="error_image" width="1280" src="{{ url_for('static', filename="images/errors/404.png") }}" alt="error 404">
 </div>
 {% endblock %}
 

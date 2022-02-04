@@ -55,18 +55,18 @@ def image_save(image, where, size):
 @app.errorhandler(404)
 def page_not_found(e):
     # note that we set the 404 status explicitly
-    return render_template('404.html'), 404
+    return render_template('errors/404.html'), 404
 
 
 @app.errorhandler(415)
 def unsupported_media_type(e):
     # note that we set the 415 status explicitly
-    return render_template('415.html'), 415
+    return render_template('errors/415.html'), 415
 
 @app.errorhandler(500)
 def unsupported_media_type(e):
     # note that we set the 500 status explicitly
-    return render_template('500.html'), 500
+    return render_template('errors/500.html'), 500
 
 ### ERROR HANDLERS END ###
 
@@ -86,20 +86,25 @@ def root():
     ## Να προστεθεί σε αυτό το view ότι χρειάζεται για την ταξινόμηση
     ## ανά ημερομηνία εισαγωγής στη βάση, ανά έτος προβολής και ανά rating
     ## με σωστή σελιδοποίηση για την κάθε περίπτωση.
+    # Added by Stavros Lagos 4.2.2022
+
+    page = request.args.get('page', 1, type=int)
+    movies = Movie.query.order_by(Movie.date_created.desc()).paginate(per_page=5, page=page)
+    return render_template('index.html', movies=movies)
 
     ## Pagination: page value from 'page' parameter from url
-    page = request.args.get('page', 1, type=int)
+    # page = request.args.get('page', 1, type=int)
 
     ## Query για ανάσυρση των ταινιών από τη βάση δεδομένων με το σωστό 
     # pagination και ταξινόμηση
     # Edited by Stavros Lagos 3.2.2022
-    movies = Movie.query.order_by(Movie.date_created.desc()).paginate(per_page=5, page=page)
+    # movies = Movie.query.order_by(Movie.date_created.desc()).paginate(per_page=5, page=page)
 
     ## Για σωστή ταξινόμηση ίσως πρέπει να περάσετε κάτι επιπλέον μέσα στο context.
     ## Υπενθύμιση: το context είναι το σύνολο των παραμέτρων που περνάμε
     ##             μέσω της render_template μέσα στα templates μας
     ##             στην παρακάτω περίπτωση το context περιέχει μόνο το movies=movies
-    return render_template("index.html", movies=movies)
+    # return render_template("index.html", movies=movies)
 
 
 
@@ -150,27 +155,37 @@ def signup():
 ## Σελίδα Λογαριασμού Χρήστη με δυνατότητα αλλαγής των στοιχείων του
 ## Να δοθεί ο σωστός decorator για υποχρεωτικό login
 @app.route("/account/", methods=['GET','POST'])
+@login_required
 def account():
 
-    #form = ## Αρχικοποίηση φόρμας με προσυμπληρωμένα τα στοιχεία του χρήστη
+    form = AccountUpdateForm(username=current_user.username, email=current_user.email)
+    ## Αρχικοποίηση φόρμας με προσυμπληρωμένα τα στοιχεία του χρήστη
+    # Added by Stavros Lagos 4.2.2022
 
     if request.method == 'POST' and form.validate_on_submit():
+        current_user.username = form.username.data
+        current_user.email = form.email.data
 
         ## Έλεγχος αν έχει δοθεί νέα εικόνα προφίλ, αλλαγή ανάλυσης της εικόνας
-        ## και αποθήκευση στον δίσκο του server και στον χρήστη (δηλαδή στη βάση δεδομένων).
+        ## και αποθήκευση στον δίσκο του server και στον χρήστη 
+        # (δηλαδή στη βάση δεδομένων).
+        if form.profile_image.data:
+            try:
+                image_file = image_save(form.profile_image.data, 'profiles_images', (150,150))
+            except:
+                abort(415)
+            current_user.profile_image = image_file
+        
+        db.session.commit()
 
         ## Αποθήκευση των υπόλοιπων στοιχείων του χρήστη.
+        # Added by Stavros Lagos 4.2.2022
 
         flash(f'Ο λογαριασμός του χρήστη: <b>{current_user.username}</b> ενημερώθηκε με επιτυχία', 'success')
 
         return redirect(url_for('root'))
-    else:
-        return render_template("account_update.html", form=form)
-
-
-
-
-
+    
+    return render_template("account_update.html", form=form)
 
 
 
@@ -181,18 +196,35 @@ def login_page():
 
     ## Έλεγχος για το αν ο χρήστης έχει κάνει login ώστε αν έχει κάνει,
     ## να μεταφέρεται στην αρχική σελίδα
+    if current_user.is_authenticated:
+        return redirect(url_for("root"))
 
-    #form = ## Αρχικοποίηση φόρμας Login
+    form = LoginForm()
+    ## Αρχικοποίηση φόρμας Login
+    # Added by Stavros Lagos 4.2.2022
 
     if request.method == 'POST' and form.validate_on_submit():
 
         email = form.email.data
         password = form.password.data
 
+        user = User.query.filter_by(email=email).first()
+
+        if user and bcrypt.check_password_hash(user.password, password):
+            flash(f'Η είσοδος του χρήστη με email {email} έγινε με επιτυχία.','success')
+            login_user(user, remember=form.remember_me.data)
+
+            next_link = request.args.get("next")
+
+            return redirect(next_link) if next_link else redirect(url_for("root"))
+        else:
+            flash(f'Η είσοδος του χρήστη ήταν ανεπιτυχής, παρακαλούμε δοκιμάστε ξανά με τα σωστά email / password.','warning')
+
         ## Ανάκτηση χρήστη από τη βάση με το email του
         ## και έλεγχος του password.
         ## Εάν είναι σωστά, να γίνεται login με τη βοήθεια του Flask-Login
         ## Σε κάθε περίπτωση να εμφανίζονται τα αντίστοιχα flash messages
+        # Added by Stavros Lagos 4.2.2022
 
     return render_template("login.html", form=form)
 
@@ -231,6 +263,8 @@ def logout_page():
 
 ## Να δοθεί ο σωστός decorator για τη σελίδα με route 'new_movie'
 ## καθώς και ο decorator για υποχρεωτικό login
+@app.route('/new_movie/')
+@login_required
 def new_movie():
     form = NewMovieForm()
 
@@ -279,6 +313,9 @@ def movie(movie_id):
 
 ## Να δοθεί ο σωστός decorator για τη σελίδα με route 'movies_by_author'
 ## και επιπλέον να δέχεται το id του χρήστη ('author_id')
+# Added by Stavros Lagos 4.2.2022
+@app.route('/movies_by_author/<int:author_id>')
+@login_required
 def movies_by_author(author_id):
 
     ## Όπως και στην αρχική σελίδα, να προστεθεί σε αυτό το view ότι χρειάζεται για την ταξινόμηση 
@@ -303,18 +340,15 @@ def movies_by_author(author_id):
 
     return render_template("movies_by_author.html", movies=movies, author=user)
 
-
-
-
-
-
-
-
 ### Σελίδα Αλλαγής Στοιχείων Ταινίας ###
 
 ## Να δοθεί ο σωστός decorator για τη σελίδα με route 'edit_movie'
 ## και επιπλέον να δέχεται το id της ταινίας προς αλλαγή ('movie_id')
 ## και να προστεθεί και ο decorator για υποχρεωτικό login
+# Added by Stavros Lagos 4.2.2022
+
+@app.route('/edit_movie/')
+@login_required
 def edit_movie(movie_id):
 
     '''movie = ## Ανάκτηση ταινίας βάσει των movie_id, user_id, ή, εμφάνιση σελίδας 404 page not found
@@ -335,18 +369,15 @@ def edit_movie(movie_id):
 
     return redirect(url_for("root"))
 
-
-
-
-
-
-
 ### Σελίδα Διαγραφής Ταινίας από τον author της ###
 
 ## Να δοθεί ο σωστός decorator για τη σελίδα με route 'delete_movie'
 ## και επιπλέον να δέχεται το id της ταινίας προς αλλαγή ('movie_id')
 ## και να προστεθεί και ο decorator για υποχρεωτικό login
-#def delete_movie(movie_id):
+# Added by Stavros Lagos 4.2.2022
+@app.route('/delete_movie/')
+@login_required
+def delete_movie(movie_id):
 
     #movie = ## Ανάκτηση ταινίας βάσει των movie_id και author (ο οποίος πρέπει να συμπίπτει με τον current user), ή, εμφάνιση σελίδας 404 page not found
 
@@ -354,3 +385,5 @@ def edit_movie(movie_id):
     ## με ανακατεύθυνση στην αρχική σελίδα
     ## αλλιώς εμφανίζουμε flash message ανεπιτυχούς διαγραφής
     ## με ανακατεύθυνση στην αρχική σελίδα
+    flash('Η ταινία δεν διαγράφηκε.', 'warning')
+    return redirect(url_for('root'))

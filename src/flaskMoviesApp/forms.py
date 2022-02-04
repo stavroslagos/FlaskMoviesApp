@@ -1,14 +1,20 @@
+from cProfile import label
 from email import message
 from flask_wtf.file import FileAllowed, FileField
-from wtforms import StringField, SubmitField, BooleanField, TextAreaField, IntegerField
-from wtforms.validators import DataRequired, Email, Length, EqualTo, NumberRange
+from wtforms import (StringField, SubmitField, BooleanField, 
+                    TextAreaField, IntegerField)
+from wtforms.validators import (Optional,DataRequired, Email, 
+                                Length, EqualTo, NumberRange, ValidationError)
 from FlaskMoviesApp.models import User
 
 from flask_wtf import FlaskForm
 
 from datetime import datetime as dt
+from flask_login import current_user
+
 
 ### Συμπληρώστε κάποια από τα imports που έχουν αφαιρεθεί ###
+# Added by Stavros Lagos 4.2.2022
 
 
 current_year = dt.now().year
@@ -19,8 +25,7 @@ def maxImageSize(max_size=2):
     max_bytes = max_size * 1024 * 1024
     def _check_file_size(form, field):
         if len(field.data.read()) > max_bytes:
-            raise ValidationError(f'Το μέγεθος της εικόνας δε μπορεί 
-            να υπεβαίνει τα {max_size} MB')
+            raise ValidationError(f'Το μέγεθος της εικόνας δε μπορεί να υπεβαίνει τα {max_size} MB')
 
     return _check_file_size
 
@@ -29,7 +34,7 @@ def maxImageSize(max_size=2):
 def validate_email(form, email):
     user = User.query.filter_by(email=email.data).first()
     if user:
-        raise ValidationError('Αυτό το email υπάρχει ήδη!')
+        raise ValidationError(f'Tο email {user.email} υπάρχει ήδη!')
 
 
 
@@ -44,12 +49,12 @@ class SignupForm(FlaskForm):
 
     password = StringField(label="password",
                            validators=[DataRequired(message="Αυτό το πεδίο δε μπορεί να είναι κενό."),
-                                       Length(min=3, max=15, message="Αυτό το πεδίο πρέπει να είναι από 3 έως 15 χαρακτήρες")])
+                                       Length(min=3, max=15, message="Ο κωδικός πρέπει να είναι από 3 έως 15 χαρακτήρες")])
     
     password2 = StringField(label="Επιβεβαίωση password",
                            validators=[DataRequired(message="Αυτό το πεδίο δε μπορεί να είναι κενό."),
                                        Length(min=3, max=15, message="Αυτό το πεδίο πρέπει να είναι από 3 έως 15 χαρακτήρες"),
-                                       EqualTo('password', message='Τα δύο πεδία password πρέπει να είναι τα ίδια')])
+                                       EqualTo('password', message='Τα δύο password πρέπει να είναι τα ίδια')])
     
     submit = SubmitField('Εγγραφή')
 
@@ -59,7 +64,7 @@ class SignupForm(FlaskForm):
         # Added by Stavros Lagos 4.2.2022
         user = User.query.filter_by(username=username.data).first()
         if user:
-            raise ValidationError('To username {username.data} υπάρχει ήδη!')
+            raise ValidationError(f'To username {user.username} υπάρχει ήδη!')
 
 
 
@@ -76,7 +81,7 @@ class AccountUpdateForm(FlaskForm):
     ## Αρχείο Εικόνας, με επιτρεπόμενους τύπους εικόνων τα 'jpg', 'jpeg', 'png', 
     # και μέγιστο μέγεθος αρχείου εικόνας τα 2 MBytes, ΜΗ υποχρεωτικό πεδίο
     # Added by Stavros Lagos 4.2.2022
-    image = FileField('Εικόνα χρήστη', validators=[Optional(strip_whitespace=True),
+    profile_image = FileField(label='Εικόνα χρήστη', validators=[Optional(strip_whitespace=True),
                                                     FileAllowed(['jpg','jpeg','png'],'Επιτρέπονται μόνο αρχεία εικόνας τύπου jpg,jpeg,png'),
                                                     maxImageSize(max_size=2)])
 
@@ -89,14 +94,14 @@ class AccountUpdateForm(FlaskForm):
         # Added by Stavros Lagos 4.2.2022
         user = User.query.filter_by(username=username.data).first()
         if user:
-            raise ValidationError('To username {username.data} υπάρχει ήδη!')
+            raise ValidationError('To username υπάρχει ήδη!')
 
     def validate_email(self, email):
         ## Validator για έλεγχο ύπαρξης του email στη βάση
         # Added by Stavros Lagos 4.2.2022
         email = User.query.filter_by(email=email.data).first()
         if email:
-            raise ValidationError('To email {email.data} υπάρχει ήδη!')
+            raise ValidationError('To email υπάρχει ήδη!')
 
 
 
@@ -127,9 +132,9 @@ class NewMovieForm(FlaskForm):
     # Added by Stavros Lagos 4.2.2022
 
 
-    plot = TextAreaField(label="Υπόθεση"),
+    plot = TextAreaField(label="Υπόθεση",
                         validators=[DataRequired(message="Αυτό το πεδίο δε μπορεί να είναι κενό."),
-                                       Length(min=5, message="Αυτό το πεδίο πρέπει να είναι μεγαλύτερο από 5 χαρακτήρες")]
+                                       Length(min=5, message="Αυτό το πεδίο πρέπει να είναι μεγαλύτερο από 5 χαρακτήρες")])
     ## Υπόθεση Ταινίας, υποχρεωτικό πεδίο κειμένου, από 5 έως απεριόριστο αριθμό χαρακτήρων 
     # και το αντίστοιχο label και μήνυμα στον validator
     # Added by Stavros Lagos 4.2.2022
