@@ -50,21 +50,29 @@
               class="img-responsive a_image" height="480px"> 
             </div>
             <div class="col col-md-12">
-              <div class="main-article-title">
-                <a class="article-title" href="{{ url_for('movie', movie_id=movie.id) }}">
+              <div class="main-movie-title">
+                <a class="movie-title" href="{{ url_for('movie', movie_id=movie.id) }}">
                   {{ movie.title | safe}}</a> 
                   ({{ movie.release_year | safe }}) 
-                  ({{ movie.rating / 10}})
+                  [{{ movie.rating / 10}}
+                  {% for i in range(5) %}
+                    {% if i <= (movie.rating // 20)-1 %}
+                      &#9733;
+                    {% else %}
+                      &#9734;
+                    {% endif %}
+                  {% endfor %}
+                  ]
               </div>
             </div>
             <!-- κάτω από τον τίτλο θα είναι η πλοκή/υπόθεση της ταινίας κομμένη 
             στους 255 χαρακτήρες -->
-            <p class="main-article-partial-text">
+            <p class="main-movie-partial-text">
               {{ movie.plot | truncate(255) | safe}}
             </p>
             <!-- τέλος, κάτω από την πλοκή θα είναι ο χρήστης που εισήγαγε την ταινία 
               με το εικονίδιό του -->
-            <p class="">Από</p>
+            <p class="">Από
               <span>
                 <a class="author-name" href="{{ url_for('movies_by_author', author_id=movie.author.id) }}">
                   {{ movie.author.username }}
@@ -72,6 +80,7 @@
                   src="{{ url_for('static', filename='images/profiles_images/'+movie.author.profile_image)}}">
                 </a>
               </span>
+            </p>
           </div>
           <hr>
 

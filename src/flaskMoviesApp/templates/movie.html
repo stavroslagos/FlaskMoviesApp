@@ -21,7 +21,15 @@
     		<div class="col col-md-12">
           
     			<p class="main-movie-title">
-            {{ movie.title }} ({{ movie.release_year }}) [{{ movie.rating / 10 }}]
+            {{ movie.title }} ({{ movie.release_year }}) [{{ movie.rating / 10 }} 
+            {% for i in range(5) %}
+                    {% if i <= (movie.rating // 20)-1 %}
+                      &#9733;
+                    {% else %}
+                      &#9734;
+                    {% endif %}
+                  {% endfor %}
+                  ]
           </p>
           <small class="movie_date">[{{ movie.date_created.strftime('%d-%m-%Y')}}]</small>
 
@@ -46,7 +54,7 @@
             {{ movie.plot | safe }}
           </div>
 
-    			<p class="">By 
+    			<p class="">Από 
             <span>
               <a class="author-name" href="{{ url_for('movies_by_author', author_id=movie.author.id) }}">
                 {{ movie.author.username }}
