@@ -1,5 +1,3 @@
-from cProfile import label
-from email import message
 from flask_wtf.file import FileAllowed, FileField
 from wtforms import (StringField, SubmitField, BooleanField, 
                     TextAreaField, IntegerField)
@@ -93,14 +91,14 @@ class AccountUpdateForm(FlaskForm):
         ## Validator για έλεγχο ύπαρξης του user στη βάση
         # Added by Stavros Lagos 4.2.2022
         user = User.query.filter_by(username=username.data).first()
-        if user:
+        if user and current_user.username != user.username:
             raise ValidationError('To username υπάρχει ήδη!')
 
     def validate_email(self, email):
         ## Validator για έλεγχο ύπαρξης του email στη βάση
         # Added by Stavros Lagos 4.2.2022
         email = User.query.filter_by(email=email.data).first()
-        if email:
+        if email and current_user.email != email.email:
             raise ValidationError('To email υπάρχει ήδη!')
 
 
@@ -150,7 +148,7 @@ class NewMovieForm(FlaskForm):
 
     release_year = IntegerField('Έτος πρώτης προβολής', validators=[DataRequired(message="Αυτό το πεδίο δε μπορεί να είναι κενό."),
                                                                     NumberRange(min=1888,max=current_year,
-                                                                    message="Το έτος πρώτης προβολής πρέπει να είναι μεταξύ 1888 και {current_year}!")])
+                                                                    message=f"Το έτος πρώτης προβολής πρέπει να είναι μεταξύ 1888 και {current_year}!")])
     ## IntegerField με το έτος πρώτης προβολής της ταινίας, θα παίρνει τιμές από το 1888 
     # έως το current_year που υπολογίζεται στην αρχή του κώδικα εδώ στο forms.py
     # Added by Stavros Lagos 4.2.2022

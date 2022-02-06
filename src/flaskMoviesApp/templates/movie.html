@@ -32,6 +32,12 @@
             <!-- έχει το δικαίωμα να διαγράψει ή να αλλάξει τα στοιχεία της ταινίας αυτής και να εμφανίζει  -->
             <!-- ή όχι τα αντίστοιχα κουμπιά αλλαγής/διαγραφής. Το κουμπί διαγραφής θα πρέπει να καλεί -->
             <!-- το Modal στην κάτω μεριά του κώδικα. -->
+            {% if movie.author == current_user %}
+            <a class="btn btn-primary btn-sm mt-1 mb-1" 
+            href="{{ url_for('edit_movie', movie_id=movie.id) }}">Αλλαγή</a>
+            <button type="button" class="btn btn-danger btn-sm m-1" 
+            data-bs-toggle="modal" data-bs-target="#deleteModal">Διαγραφή</button>
+          {% endif %}
 
           </div>
 
@@ -64,21 +70,26 @@
 
 
   <!-- Modal -->
-  <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal fade" id="deleteModal" tabindex="-1" 
+  aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="deleteModalLabel">Διαγραφή ταινίας</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" 
+          aria-label="Close"></button>
         </div>
         <div class="modal-body">
           Είστε σίγουρος/η ότι θέλετε να διαγράψετε αυτήν την ταινία;
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-
           <!-- Εδώ πρέπει να μπεί η φόρμα που περιέχει το κουμπί διαγραφής της ταινίας -->
-          <!-- και οδηγεί στο route διαγραφής -->
+          <!-- και οδηγεί στο route διαγραφής 
+          Added by Stavros Lagos 5.2.2022-->
+
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Όχι</button>
+          <form action="{{ url_for('delete_movie', movie_id=movie.id) }}" method="POST">
+              <input type="submit" class="btn btn-danger" value="Διαγραφή Ταινίας">
 
         </div>
       </div>
